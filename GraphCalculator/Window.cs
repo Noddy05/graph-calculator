@@ -23,7 +23,7 @@ namespace GraphCalculator
             : base(GameWindowSettings.Default, new NativeWindowSettings()
             {
                 Title = "Complex Graphing Calculator",
-                Size = new Vector2i(1080, 1080),
+                Size = new Vector2i(1920, 1080),
                 StartVisible = false, //Making sure to not show game window before its done loading
             })
         {
@@ -42,58 +42,34 @@ namespace GraphCalculator
 
         private RenderableObject plane;
         private Renderer3D defaultRenderer;
+        public Matrix4 perspectiveMatrix;
+        public Camera camera;
         protected override void OnLoad()
         {
             IsVisible = true;
             GL.ClearColor(new Color4(1f, 0.5f, 0.25f, 1f));
+            GL.Enable(EnableCap.DepthTest);
 
+            camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, -5f));
             defaultRenderer = new Renderer3D();
+            perspectiveMatrix = Matrix4.CreatePerspectiveFieldOfView(1.2f, 1f, 0.1f, 1000f);
+            CursorState = CursorState.Grabbed;
 
             #region Create Square
-
-            float[] vertices = new float[]
-            {
-                -0.5f, -0.5f, -1,    // 3------2
-                 0.5f, -0.5f, -1,    // |      |
-                 0.5f,  0.5f, -1,    // |      |
-                -0.5f,  0.5f, -1     // 0------1
-            };
-            int[] indices = new int[]
-            {
-                            // +-----+
-                0, 3, 1,    // | \  1|
-                3, 2, 1     // |0  \ |
-                            // +-----+
-            };
-
-            //A VAO (Vertex array object) will contain all vertex data, and assign it to the vertex shader
-            vao = new VAO();
-            //A VBO (Vertex buffer object) will transform the vertex data into something readable by the VAO.
-            VBO vbo = new VBO(vertices, BufferUsageHint.StaticDraw);
-            //An IBO (Index buffer object) will contain all data about the indices (triangles) and assign it to the fragment shader
-            ibo = new IBO(indices, BufferUsageHint.StaticDraw);
-
-            //Bind VAO and VBO so that data can be transferred between the two:
-            vao.Bind(vbo);
-            //Tell the VAO how to handle the data from the VBO:
-            vao.BindVertexAttribPointer(0, 3, VertexAttribPointerType.Float, 3, 0);
-
-            //Unbind VAO:
-            GL.BindVertexArray(0);
-            //Now that the data has been transferred to the VAO, the VBO can be disposed of
-            vbo.Dispose();
-
             //At last define the shader:
             shader = new Shader(
                 @"C:\Users\noah0\source\repos\GraphCalculator\GraphCalculator\Shaders\Materials\Standard\default_vertex.glsl",
-                @"C:\Users\noah0\source\repos\GraphCalculator\GraphCalculator\Shaders\Materials\Standard\default_fragment.glsl"
+                @"C:\Users\noah0\source\repos\GraphCalculator\GraphCalculator\Shaders\Materials\Standard\default_fragment.glsl",
+                @"C:\Users\noah0\source\repos\GraphCalculator\GraphCalculator\Shaders\Materials\Libraries\complex.glsl",
+                @"C:\Users\noah0\source\repos\GraphCalculator\GraphCalculator\Shaders\Materials\Libraries\hue.glsl"
             );
 
             plane = new RenderableObject(shader);
-            plane.mesh = new Mesh(vao, ibo);
+            plane.mesh = Plane.CreateMesh(1000, 1000);
             defaultRenderer.AddObject(plane);
-            //plane.transform.position = new Vector3(0, 0, 0);
-            //plane.transform.scale = new Vector3(100);
+            plane.transform.position = new Vector3(0, 0, 0);
+            plane.transform.rotation = new Vector3(3.14f / 2, 0, 0);
+            plane.transform.scale = new Vector3(100);
 
             #endregion
 
@@ -105,10 +81,9 @@ namespace GraphCalculator
             windowLocalTime += args.Time;
 
             //Clear background every frame to make room for the next frame
-            GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             defaultRenderer.RenderScene();
-            plane.transform.rotation.Z += 0.5f * (float)args.Time;
 
             SwapBuffers();
 

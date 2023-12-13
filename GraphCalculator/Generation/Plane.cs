@@ -13,14 +13,12 @@ namespace GraphCalculator.Generation
     {
         public static Mesh CreateMesh(int xSubdivisions, int ySubdivisions)
         {
-            float[] vertices = new float[xSubdivisions * ySubdivisions * 5];
+            float[] vertices = new float[xSubdivisions * ySubdivisions * 3];
             int[] triangles = new int[(xSubdivisions - 1) * (ySubdivisions - 1) * 6];
             for (int y = 0; y < ySubdivisions - 1; y++)
             {
                 for (int x = 0; x < xSubdivisions - 1; x++)
                 {
-                    if (y <= (ySubdivisions) / 2 && y >= (ySubdivisions - 2) / 2)
-                        continue;
                     triangles[(x + (xSubdivisions - 1) * y) * 6 + 0] =     x + xSubdivisions * y;
                     triangles[(x + (xSubdivisions - 1) * y) * 6 + 1] =     x + xSubdivisions * (y + 1);
                     triangles[(x + (xSubdivisions - 1) * y) * 6 + 2] = 1 + x + xSubdivisions * y;
@@ -33,11 +31,9 @@ namespace GraphCalculator.Generation
             {
                 for (int x = 0; x < xSubdivisions; x++)
                 {
-                    vertices[(x + xSubdivisions * y) * 5 + 0] = x / (float)(xSubdivisions - 1);
-                    vertices[(x + xSubdivisions * y) * 5 + 1] = 0;
-                    vertices[(x + xSubdivisions * y) * 5 + 2] = y / (float)(ySubdivisions - 1);
-                    vertices[(x + xSubdivisions * y) * 5 + 3] = x / (float)(xSubdivisions - 1);
-                    vertices[(x + xSubdivisions * y) * 5 + 4] = y / (float)(ySubdivisions - 1);
+                    vertices[(x + xSubdivisions * y) * 3 + 0] = x / (float)(xSubdivisions - 1) - 0.5f;
+                    vertices[(x + xSubdivisions * y) * 3 + 1] = y / (float)(ySubdivisions - 1) - 0.5f;
+                    vertices[(x + xSubdivisions * y) * 3 + 2] = 0;
                 }
             }
 
@@ -48,8 +44,7 @@ namespace GraphCalculator.Generation
             GL.BindVertexArray(vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
 
-            vao.BindVertexAttribPointer(0, 3, VertexAttribPointerType.Float, 5, 0);
-            vao.BindVertexAttribPointer(1, 2, VertexAttribPointerType.Float, 5, 3);
+            vao.BindVertexAttribPointer(0, 3, VertexAttribPointerType.Float, 3, 0);
 
             GL.BindVertexArray(0);
             vbo.Dispose();

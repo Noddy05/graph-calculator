@@ -1,4 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using GraphCalculator.Renderers;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
@@ -41,16 +42,26 @@ namespace GraphCalculator.Renderable
         }
 
         private int uniformTransformLocation = -1;
+        private int uniformPerspectiveLocation = -1;
+        private int uniformCameraLocation = -1;
         public void SetShader(int shader)
         {
             uniformTransformLocation = GL.GetUniformLocation(shader, "transform");
+            uniformPerspectiveLocation = GL.GetUniformLocation(shader, "perspective");
+            uniformCameraLocation = GL.GetUniformLocation(shader, "camera");
         }
 
         public void BindTransform()
         {
-            Matrix4 transformationMatrix = Matrix4.CreateFromQuaternion(Quaternion.FromEulerAngles(rotation))
-                * Matrix4.CreateTranslation(position);
+            Matrix4 transformationMatrix = Matrix4.CreateFromQuaternion(
+                Quaternion.FromEulerAngles(rotation))
+                * Matrix4.CreateTranslation(position) * Matrix4.CreateScale(scale);
             GL.UniformMatrix4(uniformTransformLocation, false, ref transformationMatrix);
+            Camera camera = Program.GetWindow().camera;
+            Matrix4 cameraMatrix = camera.CameraMatrix();
+            Matrix4 perspectiveMatrix = camera.projection;
+            GL.UniformMatrix4(uniformPerspectiveLocation, false, ref perspectiveMatrix);
+            GL.UniformMatrix4(uniformCameraLocation, false, ref cameraMatrix);
         }
     }
 }
